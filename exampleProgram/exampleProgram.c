@@ -24,7 +24,8 @@ all copies or substantial portions of the Software.
 
 #include "ms_speech.h"
 
-int wav_fd;
+int wav_fd = 0;
+int done = 0;
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len);
 void client_ready(ms_speech_connection_t connection, void *user_data);
@@ -60,7 +61,7 @@ int main(int argc, const char * argv[]) {
 
         wav_fd = open(argv[1], O_RDONLY);
 
-        while(1) {
+        while(!done) {
                 ms_speech_service_step(context, 500);
         }
 
@@ -85,31 +86,31 @@ const char * auth_token(ms_speech_connection_t connection, void *user_data, size
 
 void print_message_header(ms_speech_parsed_message_t *parsed_message)
 {
-        printf("\tpath: %s\n", parsed_message->path);
-        printf("\trequest_id: %s\n", parsed_message->request_id);
-        printf("\tcontent_type: %s\n", parsed_message->content_type);
+        printf(" path: %s\n", parsed_message->path);
+        printf(" request_id: %s\n", parsed_message->request_id);
+        printf(" content_type: %s\n", parsed_message->content_type);
 }
 
 void speech_startdetected(ms_speech_connection_t connection, ms_speech_startdetected_message_t *message, void *user_data)
 {
         printf("============= RESPONSE: speech.startDetected\n");
         print_message_header(message->parsed_message);
-        printf("\toffset: %f\n", message->offset);
+        printf(" offset: %f\n", message->offset);
 }
 
 void speech_enddetected(ms_speech_connection_t connection, ms_speech_enddetected_message_t *message, void *user_data)
 {
         printf("============= RESPONSE: speech.endDetected\n");
         print_message_header(message->parsed_message);
-        printf("\toffset: %f\n", message->offset);
+        printf(" offset: %f\n", message->offset);
 }
 
 void speech_hypothesis(ms_speech_connection_t connection, ms_speech_hypothesis_message_t *message, void *user_data)
 {
         printf("============= RESPONSE: speech.hypothesis\n");
         print_message_header(message->parsed_message);
-        printf("\ttext: %s\n", message->text);
-        printf("\ttime: offset: %f, duration: %f\n",
+        printf(" text: %s\n", message->text);
+        printf(" time: offset: %f, duration: %f\n",
         	message->time.offset,
 		message->time.duration);
 }
@@ -118,17 +119,17 @@ void speech_result(ms_speech_connection_t connection, ms_speech_result_message_t
 {
         printf("============= RESPONSE: speech.phrase\n");
         print_message_header(message->parsed_message);
-        printf("\tstatus: %d\n", message->status);
-        printf("\tdetailed: %d\n", message->is_detailed);
-        printf("\tnbest: %d\n", message->num_phrase_results);
+        printf(" status: %d\n", message->status);
+        printf(" detailed: %d\n", message->is_detailed);
+        printf(" nbest: %d\n", message->num_phrase_results);
         for(int i=0; i<message->num_phrase_results; i++) {
-                printf("\t%d\n", i);
-                printf("\t\tconfidence: %f\n", message->phrase_results[i].confidence);
-                printf("\t\tlexical: %s\n", message->phrase_results[i].lexical);
-                printf("\t\titn: %s\n", message->phrase_results[i].itn);
-                printf("\t\tmasked itn: %s\n", message->phrase_results[i].masked_itn);
-                printf("\t\tdisplay: %s\n", message->phrase_results[i].display);
-                printf("\t\ttime: offset: %f, duration: %f\n",
+                printf(" %d\n", i);
+                printf("  confidence: %f\n", message->phrase_results[i].confidence);
+                printf("  lexical: %s\n", message->phrase_results[i].lexical);
+                printf("  itn: %s\n", message->phrase_results[i].itn);
+                printf("  masked itn: %s\n", message->phrase_results[i].masked_itn);
+                printf("  display: %s\n", message->phrase_results[i].display);
+                printf("  time: offset: %f, duration: %f\n",
                 		message->phrase_results[i].time.offset,
 						message->phrase_results[i].time.duration);
         }
@@ -138,7 +139,7 @@ void turn_start(ms_speech_connection_t connection, ms_speech_turn_start_message_
 {
         printf("============= RESPONSE: turn.start\n");
         print_message_header(message->parsed_message);
-        printf("\tserviceTag: %s\n", message->context.service_tag);
+        printf(" serviceTag: %s\n", message->context.service_tag);
 }
 
 void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *message, void *user_data)
@@ -149,6 +150,7 @@ void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *m
         // stop streaming, if we are
         close(wav_fd);
         wav_fd = 0;
+        done = 1;
 }
 
 void global_log(ms_speech_log_level_t level, const char *message)
