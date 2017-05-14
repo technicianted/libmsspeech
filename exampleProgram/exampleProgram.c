@@ -26,6 +26,7 @@ all copies or substantial portions of the Software.
 
 int wav_fd = 0;
 int done = 0;
+const char *subscription_key = NULL;
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len);
 void client_ready(ms_speech_connection_t connection, void *user_data);
@@ -39,33 +40,40 @@ void turn_start(ms_speech_connection_t connection, ms_speech_turn_start_message_
 void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *message, void *user_data);
 
 int main(int argc, const char * argv[]) {
+	if (argc != 3) {
+		printf("Usage: <subscription_key> <wav_file>\n");
+		exit(1);
+	}
 
-        ms_speech_set_logging(0, &global_log);
+	subscription_key = argv[1];
+	ms_speech_set_logging(0, &global_log);
 
-        ms_speech_client_callbacks_t callbacks;
-        memset(&callbacks, 0, sizeof(callbacks));
-        callbacks.log = &connection_log;
-        callbacks.provide_authentication_header = &auth_token;
-        callbacks.client_ready = &client_ready;
+	ms_speech_client_callbacks_t callbacks;
+	memset(&callbacks, 0, sizeof(callbacks));
+	callbacks.log = &connection_log;
+	callbacks.provide_authentication_header = &auth_token;
+	callbacks.client_ready = &client_ready;
 
-        callbacks.speech_startdetected = &speech_startdetected;
-        callbacks.speech_enddetected = &speech_enddetected;
-        callbacks.speech_hypothesis = &speech_hypothesis;
-        callbacks.speech_result = &speech_result;
-        callbacks.turn_start = &turn_start;
-        callbacks.turn_end = &turn_end;
+	callbacks.speech_startdetected = &speech_startdetected;
+	callbacks.speech_enddetected = &speech_enddetected;
+	callbacks.speech_hypothesis = &speech_hypothesis;
+	callbacks.speech_result = &speech_result;
+	callbacks.turn_start = &turn_start;
+	callbacks.turn_end = &turn_end;
 
-        ms_speech_connection_t connection;
-        ms_speech_context_t context = ms_speech_create_context();
-        ms_speech_connect(context, "wss://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1?format=detailed&language=en-us", &callbacks, &connection);
+	ms_speech_connection_t connection;
+	ms_speech_context_t context = ms_speech_create_context();
+	ms_speech_connect(context, "wss://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1?format=detailed&language=en-us", &callbacks, &connection);
 
-        wav_fd = open(argv[1], O_RDONLY);
+	wav_fd = open(argv[2], O_RDONLY);
 
-        while(!done) {
-                ms_speech_service_step(context, 500);
-        }
+	while(!done) {
+			ms_speech_service_step(context, 500);
+	}
 
-        return 0;
+	ms_speech_destroy_context(context);
+
+	return 0;
 }
 
 int stream_callback(ms_speech_connection_t connection, unsigned char *buffer, int len)
@@ -81,7 +89,9 @@ void client_ready(ms_speech_connection_t connection, void *user_data)
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len)
 {
-	return "Ocp-Apim-Subscription-Key: e399fdcbd2cc4091845299cd9d7288c6";
+	static char buffer[1024];
+	sprintf(buffer, "Ocp-Apim-Subscription-Key: %s", subscription_key);
+	return buffer;
 }
 
 void print_message_header(ms_speech_parsed_message_t *parsed_message)
