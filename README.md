@@ -17,6 +17,6 @@ make
 ## Using
 Start by running `exampleProgram` to learn how to use the library:
 ```
-exampleProgram <wav file>
+exampleProgram <azure subscription key> <wav file>
 ```
 
