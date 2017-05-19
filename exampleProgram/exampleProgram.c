@@ -39,7 +39,7 @@ void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *m
 
 int main(int argc, const char * argv[]) {
 
-        ms_speech_set_logging(65535, &global_log);
+        ms_speech_set_logging(0, &global_log);
 
         ms_speech_client_callbacks_t callbacks;
         memset(&callbacks, 0, sizeof(callbacks));
