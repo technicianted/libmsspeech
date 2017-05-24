@@ -17,6 +17,34 @@ make
 ## Using
 Start by running `exampleProgram` to learn how to use the library:
 ```
-exampleProgram <azure subscription key> <wav file>
+exampleProgram --help
+Usage: exampleProgram [OPTION...]
+<key> <language>
+
+  -d, --debug                Produce debug output
+  -f, --file=FILE            Audio input file, stdin if omitted
+  -m, --mode=MODE            Recognition mode:
+                             {interactive|dictation|conversation}. Default is
+                             interactive
+  -t, --details              Request detailed recognition output
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
 ```
 
+To recognize a file:
+```
+exampleProgram -f <path to wav> -m interactive <your subscription key> en-us
+```
+
+On Linux, you can stream audio directly from microphone using Debian `alsa-utils`:
+```
+arecord -c 1 -r 16000 -f S16_LE | ./exampleProgram -m interactive <your subscription key> en-us
+```
+or perform long dictation:
+```
+arecord -c 1 -r 16000 -f S16_LE | ./exampleProgram -m dictation <your subscription key> en-us
+```
