@@ -33,6 +33,7 @@ int detailed = 0;
 const char *subscription_key = NULL;
 const char *language = NULL;
 const char *endpoint = "wss://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1";
+const char *profanity = NULL;
 const char *input_file = NULL;
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len);
@@ -50,8 +51,19 @@ void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *m
 static int parse_opt(int argc, char **argv)
 {
 	int key;
-	while ((key = getopt(argc, argv, "+m:f:td")) != -1) {
+	while ((key = getopt(argc, argv, "+p:m:f:td")) != -1) {
 		switch (key) {
+			case 'p':
+				if (strcmp(optarg, "raw") &&
+					strcmp(optarg, "masked") &&
+					strcmp(optarg, "removed")) {
+					printf("Invalid profanity mode '%s'\n", optarg);
+					return -1;
+				}
+				profanity = optarg;
+
+				break;
+
 			case 'd':
 				log_level = 65535;
 				break;
@@ -94,6 +106,7 @@ static void usage()
 	printf("  -d\t\t\tProduce debug output.\n");
 	printf("  -f FILE\t\tAudio input file, stdin if omitted.\n");
 	printf("  -m MODE\t\tRecognition mode:\n");
+	printf("  -p MODE\t\tSet profanity handling mode {raw|masked|removed}. Default is masked.\n");
     printf("\t\t\t{interactive|dictation|conversation}. Default is interactive.\n");
     printf("  -t\t\t\tRequest detailed recognition output.\n");
 
@@ -123,6 +136,10 @@ int main(int argc, char * argv[]) {
 	sprintf(full_uri, "%s?language=%s", endpoint, language);
 	if (detailed)
 		strcat(full_uri, "&format=detailed");
+	if (profanity) {
+		strcat(full_uri, "&profanity=");
+		strcat(full_uri, profanity);
+	}
 
 	ms_speech_connection_t connection;
 	ms_speech_context_t context = ms_speech_create_context();
