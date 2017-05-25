@@ -21,7 +21,7 @@ all copies or substantial portions of the Software.
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#include <argp.h>
+#include <getopt.h>
 
 #include "ms_speech.h"
 
@@ -47,71 +47,62 @@ void speech_result(ms_speech_connection_t connection, ms_speech_result_message_t
 void turn_start(ms_speech_connection_t connection, ms_speech_turn_start_message_t *message, void *user_data);
 void turn_end(ms_speech_connection_t connection, ms_speech_turn_end_message_t *message, void *user_data);
 
-static struct argp_option options[] = {
-  	{ "debug", 'd', 0, 0, "Produce debug output", 0 },
-	{ "mode", 'm', "MODE", 0, "Recognition mode: {interactive|dictation|conversation}. Default is interactive", 0 },
-	{ "file", 'f', "FILE", 0, "Audio input file, stdin if omitted", 0 },
-	{ "details", 't', 0, 0, "Request detailed recognition output", 0 },
-	{ 0 } };
-
-static int parse_opt(int key, char *arg, struct argp_state *state)
+static int parse_opt(int argc, char **argv)
 {
-	switch (key) {
-		case 'd':
-			log_level = 65535;
-			break;
+	int key;
+	while ((key = getopt(argc, argv, "+m:f:td")) != -1) {
+		switch (key) {
+			case 'd':
+				log_level = 65535;
+				break;
 
-		case 'm':
-			if (!strcmp(arg, "interactive")) {
-				endpoint = "wss://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1";
-			} else if (!strcmp(arg, "dictation")) {
-				endpoint = "wss://speech.platform.bing.com/speech/recognition/dictation/cognitiveservices/v1";
-			} else if (!strcmp(arg, "conversation")) {
-				endpoint = "wss://speech.platform.bing.com/speech/recognition/conversation/cognitiveservices/v1";
-			} else {
-				printf("Invalid mode '%s'\n", arg);
-				argp_usage (state);
-			}
-			break;
+			case 'm':
+				if (!strcmp(optarg, "interactive")) {
+					endpoint = "wss://speech.platform.bing.com/speech/recognition/interactive/cognitiveservices/v1";
+				} else if (!strcmp(optarg, "dictation")) {
+					endpoint = "wss://speech.platform.bing.com/speech/recognition/dictation/cognitiveservices/v1";
+				} else if (!strcmp(optarg, "conversation")) {
+					endpoint = "wss://speech.platform.bing.com/speech/recognition/conversation/cognitiveservices/v1";
+				} else {
+					printf("Invalid mode '%s'\n", optarg);
+					return -1;
+				}
+				break;
 
-		case 't':
-			detailed = 1;
-			break;
+			case 't':
+				detailed = 1;
+				break;
 
-		case 'f':
-			input_file = arg;
-			break;
-
-		case ARGP_KEY_ARG:
-			if (arg_num == 0) {
-				subscription_key = arg;
-			}
-			else if (arg_num == 1) {
-				language = arg;
-			}
-			else {
-				argp_usage(state);
-			}
-
-			arg_num++;
-			break;
-
-		case ARGP_KEY_END:
-			if (arg_num != 2)
-				argp_usage(state);
-			break;
-
-		default:
-			return ARGP_ERR_UNKNOWN;
+			case 'f':
+				input_file = optarg;
+				break;
+		}
 	}
+
+	if ((argc - optind) != 2)
+		return -1;
+
+	subscription_key = argv[optind];
+	language = argv[optind + 1];
 
 	return 0;
 }
 
-static struct argp argp = { options, parse_opt, NULL, "<key> <language>" };
+static void usage()
+{
+	printf("Usage: exampleProgram [OPTION...] <key> <language>\n");
+	printf("  -d\t\t\tProduce debug output.\n");
+	printf("  -f FILE\t\tAudio input file, stdin if omitted.\n");
+	printf("  -m MODE\t\tRecognition mode:\n");
+    printf("\t\t\t{interactive|dictation|conversation}. Default is interactive.\n");
+    printf("  -t\t\t\tRequest detailed recognition output.\n");
+
+    exit(1);
+}
 
 int main(int argc, char * argv[]) {
-	argp_parse(&argp, argc, argv, 0, 0, &options);
+	if (parse_opt(argc, argv))
+			usage();
 
 	ms_speech_set_logging(log_level, &global_log);
 
