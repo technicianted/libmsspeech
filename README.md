@@ -17,21 +17,13 @@ make
 ## Using
 Start by running `exampleProgram` to learn how to use the library:
 ```
-exampleProgram --help
-Usage: exampleProgram [OPTION...]
-<key> <language>
-
-  -d, --debug                Produce debug output
-  -f, --file=FILE            Audio input file, stdin if omitted
-  -m, --mode=MODE            Recognition mode:
-                             {interactive|dictation|conversation}. Default is
-                             interactive
-  -t, --details              Request detailed recognition output
-  -?, --help                 Give this help list
-      --usage                Give a short usage message
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
+Usage: exampleProgram [OPTION...] <key> <language>
+  -d			Produce debug output.
+  -f FILE		Audio input file, stdin if omitted.
+  -m MODE		Recognition mode:
+  -p MODE		Set profanity handling mode {raw|masked|removed}. Default is masked.
+			{interactive|dictation|conversation}. Default is interactive.
+  -t			Request detailed recognition output.
 
 ```
 
