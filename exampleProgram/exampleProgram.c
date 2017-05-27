@@ -105,8 +105,8 @@ static void usage()
 	printf("Usage: exampleProgram [OPTION...] <key> <language>\n");
 	printf("  -d\t\t\tProduce debug output.\n");
 	printf("  -f FILE\t\tAudio input file, stdin if omitted.\n");
-	printf("  -m MODE\t\tRecognition mode:\n");
 	printf("  -p MODE\t\tSet profanity handling mode {raw|masked|removed}. Default is masked.\n");
+	printf("  -m MODE\t\tRecognition mode:\n");
     printf("\t\t\t{interactive|dictation|conversation}. Default is interactive.\n");
     printf("  -t\t\t\tRequest detailed recognition output.\n");
 
