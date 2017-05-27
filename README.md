@@ -1,5 +1,5 @@
 # libmsspeech
-Library for Microsoft Cognitive Services [speech recognition](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/home).
+Library for Microsoft Cognitive Services [speech recognition](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/home). For more details about usage, take a look at my [blog post](https://hashifdef.wordpress.com/2017/05/29/getting-started-with-microsoft-speech-recognition-under-unix/).
 
 > __This is the very first version that works. Do not use it in any serious application yet!__
 
@@ -17,21 +17,13 @@ make
 ## Using
 Start by running `exampleProgram` to learn how to use the library:
 ```
-exampleProgram --help
-Usage: exampleProgram [OPTION...]
-<key> <language>
-
-  -d, --debug                Produce debug output
-  -f, --file=FILE            Audio input file, stdin if omitted
-  -m, --mode=MODE            Recognition mode:
-                             {interactive|dictation|conversation}. Default is
-                             interactive
-  -t, --details              Request detailed recognition output
-  -?, --help                 Give this help list
-      --usage                Give a short usage message
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
+Usage: exampleProgram [OPTION...] <key> <language>
+  -d			Produce debug output.
+  -f FILE		Audio input file, stdin if omitted.
+  -m MODE		Recognition mode:
+  -p MODE		Set profanity handling mode {raw|masked|removed}. Default is masked.
+			{interactive|dictation|conversation}. Default is interactive.
+  -t			Request detailed recognition output.
 
 ```
 
