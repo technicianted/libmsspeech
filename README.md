@@ -1,5 +1,5 @@
 # libmsspeech
-Library for Microsoft Cognitive Services [speech recognition](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/home). For more details about usage, take a look at my [blob post](https://hashifdef.wordpress.com/2017/05/29/getting-started-with-microsoft-speech-recognition-under-unix/).
+Library for Microsoft Cognitive Services [speech recognition](https://docs.microsoft.com/en-us/azure/cognitive-services/speech/home). For more details about usage, take a look at my [blog post](https://hashifdef.wordpress.com/2017/05/29/getting-started-with-microsoft-speech-recognition-under-unix/).
 
 > __This is the very first version that works. Do not use it in any serious application yet!__
 
