@@ -40,3 +40,5 @@ or perform long dictation:
 ```
 arecord -c 1 -r 16000 -f S16_LE | ./exampleProgram -m dictation <your subscription key> en-us
 ```
+
+More explanation and details on how to use the library can be found in this [blog post](https://hashifdef.wordpress.com/2017/05/29/getting-started-with-microsoft-speech-recognition-under-unix/).
