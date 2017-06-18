@@ -40,7 +40,7 @@ or perform long dictation on Steve Jobs Standford University commencement speech
 ```
 curl -L -s https://archive.org/download/SteveJobsSpeechAtStanfordUniversity/SteveJobsSpeech_64kb.mp3 | \
 mpg123 -w - -m -r 16000 -e s16 - | \
-./exampleProgram -m dictation e5711148487643238524275619f3b825 en-us
+./exampleProgram -m dictation <your subscription key> en-us
 ```
 
 More explanation and details on how to use the library can be found in this [blog post](https://hashifdef.wordpress.com/2017/05/29/getting-started-with-microsoft-speech-recognition-under-unix/).
