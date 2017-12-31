@@ -17,10 +17,14 @@ all copies or substantial portions of the Software.
 #ifndef ms_speech_h
 #define ms_speech_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <json-c/json.h>
 
-#include "response_messages.h"
-#include "ms_speech_logging.h"
+#include "ms_speech/response_messages.h"
+#include "ms_speech/ms_speech_logging.h"
 
 extern const char * ms_speech_version;
 
@@ -43,10 +47,11 @@ typedef struct ms_speech_connection_st * ms_speech_connection_t;
  * \param connection connection object that requests audio.
  * \param buffer buffer to fill with audio bytes.
  * \param buffer_len length of provided buffer.
+ * \param stream_user_data
  * \return number of audio bytes copied to buffer, 0 to indicate end of audio or -EAGAIN to indicate
  * that no audio is available at this time.
  */
-typedef int (*ms_speech_audio_stream_callback)(ms_speech_connection_t connection, unsigned char *buffer, int buffer_len);
+typedef int (*ms_speech_audio_stream_callback)(ms_speech_connection_t connection, unsigned char *buffer, int buffer_len, void *stream_user_data);
 
 /** 
  * \typedef ms_speech_user_message_type
@@ -145,6 +150,14 @@ typedef struct {
 	 */
 	void (*speech_hypothesis)(ms_speech_connection_t connection, ms_speech_hypothesis_message_t *message, void *user_data);
 	/**
+	 * \brief Called when when speech.fragment dictation is received.
+	 *
+	 * \param connection connection reference for this callback.
+	 * \param message parsed message contents.
+	 * \param user_data user data.
+	 */
+	void (*speech_fragment)(ms_speech_connection_t connection, ms_speech_fragment_message_t *message, void *user_data);
+	/**
 	 * \brief Called when when speech.phrase is received.
 	 *
 	 * \param connection connection reference for this callback.
@@ -217,7 +230,7 @@ void ms_speech_destroy_context(ms_speech_context_t context);
  * \param conn connection object to be filled out by method return.
  * \return nonzero on failure.
  */
-int ms_speech_connect(ms_speech_context_t context, char *uri, ms_speech_client_callbacks_t *callbacks, ms_speech_connection_t *conn);
+int ms_speech_connect(ms_speech_context_t context, const char *uri, ms_speech_client_callbacks_t *callbacks, ms_speech_connection_t *conn);
 /**
  * \brief Disconnects and destroys the connection object.
  *
@@ -235,9 +248,15 @@ int ms_speech_disconnect(ms_speech_connection_t connection);
  * one or more callback.
  * 
  * \param context client context.
- * \paran timeout_ms loop timeout in milliseconds. 0 only processes non-blocking events.
+ * \param timeout_ms loop timeout in milliseconds. 0 only processes non-blocking events.
  */
 void ms_speech_service_step(ms_speech_context_t context, int timeout_ms);
+/**
+ * \brief Cancel current service run loop step. Used for multithreading scenarios.
+ * 
+ * \param context client context.
+ */
+void ms_speech_service_cancel_step(ms_speech_context_t context);
 /**
  * \brief Request start of audio streaming.
  * 
@@ -248,9 +267,10 @@ void ms_speech_service_step(ms_speech_context_t context, int timeout_ms);
  * 
  * \param connection connection object.
  * \param stream_callback callback to be used whenever the client is ready to send out audio.
+ * \param strea_user_data callback user data.
  * \return nonzero on failure.
  */
-int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback);
+int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, void *stream_user_data);
 /**
  * \brief Resume a previously paused stream.
  * 
@@ -263,5 +283,9 @@ int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_st
  * \return nonzero on failure.
  */
 int ms_speech_resume_stream(ms_speech_connection_t connection);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ms_speech_h */

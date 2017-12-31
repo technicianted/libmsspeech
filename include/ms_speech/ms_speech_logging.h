@@ -17,6 +17,10 @@ all copies or substantial portions of the Software.
 #ifndef ms_speech_logging_h
 #define ms_speech_logging_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <libwebsockets.h>
 
 /**
@@ -46,7 +50,6 @@ typedef enum {
  */
 typedef void (*ms_speech_global_log_t)(ms_speech_log_level_t level, const char *message);
 
-typedef struct ms_speech_connection_st * ms_speech_connection_t;
 /**
  * \brief Set logging callback.
  *
@@ -54,5 +57,9 @@ typedef struct ms_speech_connection_st * ms_speech_connection_t;
  * \param callback loging callback.
  */
 void ms_speech_set_logging(int levels, ms_speech_global_log_t callback);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ms_speech_logging_h */

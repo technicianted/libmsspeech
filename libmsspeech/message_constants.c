@@ -28,6 +28,7 @@ const char *MS_SPEECH_MESSAGE_PATH_AUDIO = "audio";
 const char *MS_SPEECH_MESSAGE_PATH_SPEECH_STARTDETECTED = "speech.startDetected";
 const char *MS_SPEECH_MESSAGE_PATH_SPEECH_ENDDETECTED = "speech.endDetected";
 const char *MS_SPEECH_MESSAGE_PATH_SPEECH_HYPOTHESIS = "speech.hypothesis";
+const char *MS_SPEECH_MESSAGE_PATH_SPEECH_FRAGMENT = "speech.fragment";
 const char *MS_SPEECH_MESSAGE_PATH_SPEECH_PHRASE = "speech.phrase";
 const char *MS_SPEECH_MESSAGE_PATH_TURN_START = "turn.start";
 const char *MS_SPEECH_MESSAGE_PATH_TURN_END = "turn.end";

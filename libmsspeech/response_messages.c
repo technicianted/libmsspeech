@@ -19,7 +19,7 @@ all copies or substantial portions of the Software.
 #include <strings.h>
 
 #include "compat.h"
-#include "response_messages.h"
+#include "ms_speech/response_messages.h"
 #include "message_constants.h"
 #include "response_messages_priv.h"
 #include "ms_speech_logging_priv.h"
@@ -28,6 +28,7 @@ all copies or substantial portions of the Software.
 static int ms_speech_handle_speech_startdetected(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
 static int ms_speech_handle_speech_enddetected(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
 static int ms_speech_handle_speech_hypothesis(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
+static int ms_speech_handle_speech_fragment(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
 static int ms_speech_handle_speech_result(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
 static int ms_speech_handle_turn_start(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
 static int ms_speech_handle_turn_end(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message);
@@ -55,6 +56,8 @@ int ms_speech_handle_resonse_message(ms_speech_connection_t connection, void *bu
 		r = ms_speech_handle_speech_enddetected(connection, parsed_message);
 	else if (!strcasecmp(parsed_message->path, MS_SPEECH_MESSAGE_PATH_SPEECH_HYPOTHESIS))
 		r = ms_speech_handle_speech_hypothesis(connection, parsed_message);
+	else if (!strcasecmp(parsed_message->path, MS_SPEECH_MESSAGE_PATH_SPEECH_FRAGMENT))
+		r = ms_speech_handle_speech_fragment(connection, parsed_message);
 	else if (!strcasecmp(parsed_message->path, MS_SPEECH_MESSAGE_PATH_SPEECH_PHRASE))
 		r = ms_speech_handle_speech_result(connection, parsed_message);
 	else if (!strcasecmp(parsed_message->path, MS_SPEECH_MESSAGE_PATH_TURN_START))
@@ -76,6 +79,9 @@ void ms_speech_handle_connection_cleanup(ms_speech_connection_t connection)
 	if (connection->current_parsed_message != NULL) {
 		ms_speech_destroy_parsed_message(connection->current_parsed_message);
 		connection->current_parsed_message = NULL;
+	}
+	if (connection->callbacks != NULL) {
+		free(connection->callbacks);
 	}
 }
 
@@ -175,7 +181,7 @@ static int ms_speech_handle_speech_hypothesis(ms_speech_connection_t connection,
 		ms_speech_connection_log(connection,
 								 MS_SPEECH_LOG_ERR,
 								 "%s: text is not of type string",
-								 MS_SPEECH_MESSAGE_PATH_SPEECH_PHRASE);
+								 MS_SPEECH_MESSAGE_PATH_SPEECH_HYPOTHESIS);
 
 		return -EINVAL;
 	}
@@ -185,6 +191,40 @@ static int ms_speech_handle_speech_hypothesis(ms_speech_connection_t connection,
 
 	if (connection->callbacks->speech_hypothesis)
 		connection->callbacks->speech_hypothesis(connection, &message, connection->callbacks->user_data);
+	
+	return 0;
+}
+
+static int ms_speech_handle_speech_fragment(ms_speech_connection_t connection, ms_speech_parsed_message_t *parsed_message)
+{
+	if (parsed_message->json_payload == NULL) {
+		ms_speech_connection_log(connection,
+								 MS_SPEECH_LOG_ERR,
+								 "%s has no payload",
+								 MS_SPEECH_MESSAGE_PATH_SPEECH_FRAGMENT);
+		
+		return -EINVAL;
+	}
+	
+	ms_speech_fragment_message_t message;
+	message.parsed_message = parsed_message;
+	
+	struct json_object *value_json = NULL;
+	if (!json_object_object_get_ex(parsed_message->json_payload, MS_SPEECH_MESSAGE_KEY_TEXT, &value_json) ||
+		(json_object_get_type(value_json) != json_type_string)) {
+		ms_speech_connection_log(connection,
+								 MS_SPEECH_LOG_ERR,
+								 "%s: text is not of type string",
+								 MS_SPEECH_MESSAGE_PATH_SPEECH_FRAGMENT);
+
+		return -EINVAL;
+	}
+	message.text = json_object_get_string(value_json);
+	if (ms_speech_extract_phrase_time(connection, parsed_message->json_payload, &message.time))
+		return -EINVAL;
+
+	if (connection->callbacks->speech_fragment)
+		connection->callbacks->speech_fragment(connection, &message, connection->callbacks->user_data);
 	
 	return 0;
 }

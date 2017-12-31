@@ -14,6 +14,8 @@ all copies or substantial portions of the Software.
 
 */
 
+#include <pthread.h>
+
 #include "compat.h"
 #include "ms_speech_priv.h"
 #include "ms_speech_guid.h"
@@ -23,7 +25,7 @@ all copies or substantial portions of the Software.
 #include "ms_speech_status_control.h"
 #include "ms_speech_telemetry.h"
 
-const char * ms_speech_version = "0.0.1";
+const char * ms_speech_version = "0.0.2";
 
 static const char *MS_SPEECH_CONNECTION_ID_HEADER = "X-ConnectionId";
 
@@ -72,6 +74,7 @@ ms_speech_context_t ms_speech_create_context()
 	context->info.extensions = exts;
 	context->info.gid = -1;
 	context->info.uid = -1;
+	context->info.count_threads = 1;
 	context->info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 	context->context = lws_create_context(&context->info);
 
@@ -84,13 +87,14 @@ void ms_speech_destroy_context(ms_speech_context_t context)
 	free(context);
 }
 
-int ms_speech_connect(ms_speech_context_t context, char *uri, ms_speech_client_callbacks_t *callbacks, ms_speech_connection_t *conn)
+int ms_speech_connect(ms_speech_context_t context, const char *uri, ms_speech_client_callbacks_t *callbacks, ms_speech_connection_t *conn)
 {
 	*conn = NULL;
 
 	ms_speech_connection_t connection = (ms_speech_connection_t)malloc(sizeof(struct ms_speech_connection_st));
 	memset(connection, 0, sizeof(struct ms_speech_connection_st));
-	connection->callbacks = callbacks;
+	connection->callbacks = (ms_speech_client_callbacks_t *)malloc(sizeof(ms_speech_client_callbacks_t));
+	memcpy(connection->callbacks, callbacks, sizeof(ms_speech_client_callbacks_t));
 	connection->context = context;
 	
 	connection->uri = strdup(uri);
@@ -163,7 +167,12 @@ void ms_speech_service_step(ms_speech_context_t context, int timeout_ms)
 	lws_service(context->context, timeout_ms);
 }
 
-int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback)
+void ms_speech_service_cancel_step(ms_speech_context_t context)
+{
+	lws_cancel_service(context->context);
+}
+
+int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, void *stream_user_data)
 {
 	if (connection->connection_status != MS_SPEECH_CLIENT_CONNECTED ||
 		connection->connection_status != MS_SPEECH_CLIENT_IDLE) {
@@ -181,6 +190,7 @@ int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_st
 	memset(connection->streaming_info, 0, sizeof(ms_speech_streaming_info_t));
 	
 	connection->streaming_info->stream_callback = stream_callback;
+	connection->streaming_info->stream_user_data = stream_user_data;
 	ms_speech_set_status(connection, MS_SPEECH_CLIENT_STREAMING);
 	
 	lws_callback_on_writable(connection->wsi);
@@ -306,6 +316,12 @@ static int ws_service_callback(struct lws *wsi, enum lws_callback_reasons reason
 				lws_callback_on_writable(conn->wsi);
 				r = 0;
 			}
+			break;
+		}
+
+		case LWS_CALLBACK_GET_THREAD_ID:
+		{
+			r = pthread_self();
 			break;
 		}
 			
@@ -451,7 +467,8 @@ static int ms_speech_handle_streaming(ms_speech_connection_t connection, ms_spee
 	
 	int r = connection->streaming_info->stream_callback(connection,
 														connection->streaming_info->buffer,
-														sizeof(connection->streaming_info->buffer));
+														sizeof(connection->streaming_info->buffer),
+														connection->streaming_info->stream_user_data);
 	
 	ms_speech_connection_log(connection,
 							 MS_SPEECH_LOG_DEBUG,

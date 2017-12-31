@@ -23,7 +23,7 @@ all copies or substantial portions of the Software.
 #include <unistd.h>
 #include <getopt.h>
 
-#include "ms_speech.h"
+#include "ms_speech/ms_speech.h"
 
 int arg_num = 0;
 int wav_fd = 0;
@@ -168,7 +168,7 @@ void connection_error(ms_speech_connection_t connection, unsigned int http_statu
 	exit(1);
 }
 
-int stream_callback(ms_speech_connection_t connection, unsigned char *buffer, int len)
+int stream_callback(ms_speech_connection_t connection, unsigned char *buffer, int len, void *stream_user_data)
 {
         ssize_t r = read(wav_fd, buffer, len);
         return (int)r;
@@ -176,7 +176,7 @@ int stream_callback(ms_speech_connection_t connection, unsigned char *buffer, in
 
 void client_ready(ms_speech_connection_t connection, void *user_data)
 {
-       ms_speech_start_stream(connection, &stream_callback);
+       ms_speech_start_stream(connection, &stream_callback, NULL);
 }
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len)

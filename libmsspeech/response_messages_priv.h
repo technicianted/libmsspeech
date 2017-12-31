@@ -18,7 +18,7 @@ all copies or substantial portions of the Software.
 #define response_messages_priv_h
 
 #include "ms_speech_priv.h"
-#include "response_messages.h"
+#include "ms_speech/response_messages.h"
 
 int ms_speech_handle_resonse_message(ms_speech_connection_t connection, void *buffer, size_t len);
 void ms_speech_handle_connection_cleanup(ms_speech_connection_t connection);

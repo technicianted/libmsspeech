@@ -17,9 +17,11 @@ all copies or substantial portions of the Software.
 #include <json-c/json.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
+#include <string.h>
+#include <errno.h>
 
 #include "ms_speech_priv.h"
-#include "ms_speech_logging.h"
+#include "ms_speech/ms_speech_logging.h"
 #include "response_messages_priv.h"
 #include "message_constants.h"
 #include "ms_speech_timestamp.h"

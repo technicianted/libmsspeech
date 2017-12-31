@@ -14,7 +14,9 @@ all copies or substantial portions of the Software.
 
 */
 
-#include "ms_speech_logging.h"
+#include <stdio.h>
+
+#include "ms_speech/ms_speech_logging.h"
 #include "ms_speech_priv.h"
 #include "ms_speech_logging_priv.h"
 
@@ -35,9 +37,14 @@ void ms_speech_log(ms_speech_log_level_t level, const char *format, ...)
 		va_start(args, format);
 		
 		char *buffer = NULL;
-		vasprintf(&buffer, format, args);
-		ms_speech_global_log_callback(level, buffer);
-		free(buffer);
+		int r = vasprintf(&buffer, format, args);
+		if (r != -1) {
+			ms_speech_global_log_callback(level, buffer);
+			free(buffer);
+		}
+		else {
+			ms_speech_global_log_callback(MS_SPEECH_LOG_WARN, "Unable to allocate memory for logging");
+		}
 		
 		va_end(args);
 	}
@@ -50,8 +57,12 @@ void ms_speech_connection_log(ms_speech_connection_t connection, ms_speech_log_l
 		va_start(args, format);
 	
 		char *buffer = NULL;
-		vasprintf(&buffer, format, args);
-
+		int r = vasprintf(&buffer, format, args);
+		if (r == -1) {
+			buffer = (char *)malloc(255);
+			sprintf(buffer, "Unable to allocate memory for logging");
+			level = MS_SPEECH_LOG_WARN;
+		}
 		if (connection->callbacks->log)
 			connection->callbacks->log(connection, connection->callbacks->user_data, level, buffer);
 		else if (ms_speech_global_log_callback)

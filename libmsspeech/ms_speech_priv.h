@@ -22,7 +22,7 @@ all copies or substantial portions of the Software.
 #include <json-c/json.h>
 
 #include "libwebsockets.h"
-#include "ms_speech.h"
+#include "ms_speech/ms_speech.h"
 
 typedef enum {
 	MS_SPEECH_CLIENT_DISCONNECTED,
@@ -59,6 +59,7 @@ typedef struct
 typedef struct
 {
 	ms_speech_audio_stream_callback stream_callback;
+	void *stream_user_data;
 	unsigned char buffer[MS_SPEECH_STREAM_BUFFER_SIZE];
 	char request_id[48];
 	int packet_num;

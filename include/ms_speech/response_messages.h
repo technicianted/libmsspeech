@@ -17,6 +17,10 @@ all copies or substantial portions of the Software.
 #ifndef response_messages_h
 #define response_messages_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <json-c/json.h>
 
 /**
@@ -146,6 +150,20 @@ typedef struct
 } ms_speech_hypothesis_message_t;
 
 /**
+ * \typedef ms_speech_fragment_message_t.
+ * \brief speech.fragment message.
+ */
+typedef struct
+{
+	ms_speech_parsed_message_t *parsed_message;
+
+	// Recognized text.
+	const char *text;
+	// Text timing information.
+	ms_speech_phrase_timing_t time;
+} ms_speech_fragment_message_t;
+
+/**
  * \typedef ms_speech_phrase_result_t
  * \brief A single phrase result.
  */
@@ -184,5 +202,9 @@ typedef struct
 	int num_phrase_results;
 	ms_speech_phrase_result_t *phrase_results;
 } ms_speech_result_message_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* response_messages_h */

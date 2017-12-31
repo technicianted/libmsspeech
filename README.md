@@ -6,6 +6,7 @@ Library for Microsoft Cognitive Services [speech recognition](https://docs.micro
 ## Prerequisites
 * [libwebsockets](https://libwebsockets.org) at least v2.1-stable, v2.2-stable.
 * [json-c](https://github.com/json-c/json-c).
+* [libuuid](https://sourceforge.net/projects/libuuid/)
 
 ## Building
 ```
