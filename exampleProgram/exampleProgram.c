@@ -176,7 +176,7 @@ int stream_callback(ms_speech_connection_t connection, unsigned char *buffer, in
 
 void client_ready(ms_speech_connection_t connection, void *user_data)
 {
-       ms_speech_start_stream(connection, &stream_callback, NULL);
+       ms_speech_start_stream(connection, &stream_callback, NULL, NULL);
 }
 
 const char * auth_token(ms_speech_connection_t connection, void *user_data, size_t max_len)

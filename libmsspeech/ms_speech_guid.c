@@ -16,13 +16,26 @@ all copies or substantial portions of the Software.
 
 #include "ms_speech_guid.h"
 
-#include <uuid/uuid.h>
 #include <errno.h>
 
 int ms_speech_generate_guid(char *buffer, size_t len, int canonical_form)
 {
 	uuid_t uuid;
 	uuid_generate(uuid);
+	return ms_speech_uuid_to_char(uuid, buffer, len, canonical_form);
+}
+
+int ms_speech_sanitize_guid(const char *input, char *buffer, size_t len, int canonical_form)
+{
+	uuid_t uuid;
+	int r = uuid_parse(input, uuid);
+	if (r == -1)
+		return r;
+	return ms_speech_uuid_to_char(uuid, buffer, len, canonical_form);
+}
+
+int ms_speech_uuid_to_char(uuid_t uuid, char *buffer, size_t len, int canonical_form)
+{
 	int r = 0;
 	if (canonical_form) {
 		if (len < 37)

@@ -25,7 +25,7 @@ all copies or substantial portions of the Software.
 #include "ms_speech_status_control.h"
 #include "ms_speech_telemetry.h"
 
-const char * ms_speech_version = "0.0.2";
+const char * ms_speech_version = "0.0.3";
 
 static const char *MS_SPEECH_CONNECTION_ID_HEADER = "X-ConnectionId";
 
@@ -172,8 +172,21 @@ void ms_speech_service_cancel_step(ms_speech_context_t context)
 	lws_cancel_service(context->context);
 }
 
-int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, void *stream_user_data)
+int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, const char *request_id, void *stream_user_data)
 {
+	char buffer[48];
+	if (request_id) {
+		int r = ms_speech_sanitize_guid(request_id, buffer, sizeof(buffer), 0);
+		if (r == -1) {
+			ms_speech_connection_log(connection,
+									MS_SPEECH_LOG_ERR,
+									"Cannot start streaming: request ID is in incorrect format: %s", request_id);
+			return -1;
+		}
+	} else {
+		ms_speech_generate_guid(buffer, sizeof(buffer), 0);
+	}
+
 	if (connection->connection_status != MS_SPEECH_CLIENT_CONNECTED ||
 		connection->connection_status != MS_SPEECH_CLIENT_IDLE) {
 		ms_speech_connection_log(connection,
@@ -188,7 +201,7 @@ int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_st
 	
 	connection->streaming_info = (ms_speech_streaming_info_t *)malloc(sizeof(ms_speech_streaming_info_t));
 	memset(connection->streaming_info, 0, sizeof(ms_speech_streaming_info_t));
-	
+	strcpy(connection->streaming_info->request_id, buffer);
 	connection->streaming_info->stream_callback = stream_callback;
 	connection->streaming_info->stream_user_data = stream_user_data;
 	ms_speech_set_status(connection, MS_SPEECH_CLIENT_STREAMING);
@@ -420,8 +433,6 @@ static int handle_writable(ms_speech_connection_t connection)
 static int write_message(ms_speech_connection_t connection, ms_speech_message * message)
 {
 	ms_speech_set_message_time(message);
-	if (strlen(message->request_id) == 0)
-		ms_speech_set_message_request_id(message);
 
 	char *buffer = NULL;
 	int len = ms_speech_serialize_message(message, &buffer);
@@ -474,9 +485,7 @@ static int ms_speech_handle_streaming(ms_speech_connection_t connection, ms_spee
 							 MS_SPEECH_LOG_DEBUG,
 							 "Streaming callback return: %d",
 							 r);
-
-	if (connection->streaming_info->packet_num > 0)
-		strcpy(message->request_id, connection->streaming_info->request_id);
+	strcpy(message->request_id, connection->streaming_info->request_id);
 	
 	if (r == -EAGAIN) {
 		// callback saying there is no data now
@@ -493,9 +502,6 @@ static int ms_speech_handle_streaming(ms_speech_connection_t connection, ms_spee
 			// need more writes
 			r = -EAGAIN;
 		}
-
-		if (connection->streaming_info->packet_num == 0)
-			strcpy(connection->streaming_info->request_id, message->request_id);
 
 		connection->streaming_info->packet_num++;
 	} else {

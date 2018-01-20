@@ -21,7 +21,6 @@ ms_speech_message *ms_speech_create_new_message();
 
 void ms_speech_destroy_message(ms_speech_message *message);
 void ms_speech_set_message_time(ms_speech_message *message);
-void ms_speech_set_message_request_id(ms_speech_message *message);
 void ms_speech_set_message_body(ms_speech_message *message, const unsigned char *body, size_t body_length);
 
 int ms_speech_set_message_speech_config(ms_speech_connection_t connection, ms_speech_message *message);

@@ -50,11 +50,6 @@ void ms_speech_set_message_time(ms_speech_message *message)
 	ms_speech_get_timestamp(message->request_time, sizeof(message->request_time));
 }
 
-void ms_speech_set_message_request_id(ms_speech_message *message)
-{
-	ms_speech_generate_guid(message->request_id, sizeof(message->request_id), 0);
-}
-
 void ms_speech_set_message_body(ms_speech_message *message, const unsigned char *body, size_t body_length)
 {
 	message->body = (char *)malloc(body_length);
@@ -75,15 +70,26 @@ int ms_speech_serialize_message(ms_speech_message *message, char **buffer)
 		p += sizeof(unsigned short);
 	
 	// required headers
-	sprintf(p,
-			"%s: %s\r\n"
-			"%s: %s\r\n"
-			"%s: %s\r\n"
-			"%s: %s\r\n",
-			MS_SPEECH_PATH_HEADER, message->path,
-			MS_SPEECH_TIMESTAMP_HEADER, message->request_time,
-			MS_SPEECH_REQUEST_ID_HEADER, message->request_id,
-			MS_SPEECH_CONTENT_TYPE_HEADER, message->content_type);
+	if (strlen(message->request_id)) {
+		sprintf(p,
+				"%s: %s\r\n"
+				"%s: %s\r\n"
+				"%s: %s\r\n"
+				"%s: %s\r\n",
+				MS_SPEECH_PATH_HEADER, message->path,
+				MS_SPEECH_TIMESTAMP_HEADER, message->request_time,
+				MS_SPEECH_REQUEST_ID_HEADER, message->request_id,
+				MS_SPEECH_CONTENT_TYPE_HEADER, message->content_type);
+	}
+	else {
+		sprintf(p,
+				"%s: %s\r\n"
+				"%s: %s\r\n"
+				"%s: %s\r\n",
+				MS_SPEECH_PATH_HEADER, message->path,
+				MS_SPEECH_TIMESTAMP_HEADER, message->request_time,
+				MS_SPEECH_CONTENT_TYPE_HEADER, message->content_type);
+	}
 	// finalize
 	strcat(p, "\r\n");
 	

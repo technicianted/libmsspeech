@@ -267,10 +267,11 @@ void ms_speech_service_cancel_step(ms_speech_context_t context);
  * 
  * \param connection connection object.
  * \param stream_callback callback to be used whenever the client is ready to send out audio.
+ * \param request_id request ID in UUID non-cannonical format, NULL to auto generate.
  * \param strea_user_data callback user data.
  * \return nonzero on failure.
  */
-int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, void *stream_user_data);
+int ms_speech_start_stream(ms_speech_connection_t connection, ms_speech_audio_stream_callback stream_callback, const char *request_id, void *stream_user_data);
 /**
  * \brief Resume a previously paused stream.
  * 

@@ -18,7 +18,10 @@ all copies or substantial portions of the Software.
 #define ms_speech_guid_h
 
 #include <stdio.h>
+#include <uuid/uuid.h>
 
 int ms_speech_generate_guid(char *buffer, size_t len, int canonical_form);
+int ms_speech_sanitize_guid(const char *input, char *buffer, size_t len, int canonical_form);
+int ms_speech_uuid_to_char(uuid_t uuid, char *buffer, size_t len, int canonical_form);
 
 #endif /* ms_speech_guid_h */
