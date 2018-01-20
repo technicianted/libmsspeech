@@ -61,7 +61,6 @@ typedef struct
 	ms_speech_audio_stream_callback stream_callback;
 	void *stream_user_data;
 	unsigned char buffer[MS_SPEECH_STREAM_BUFFER_SIZE];
-	char request_id[48];
 	int packet_num;
 } ms_speech_streaming_info_t;
 
@@ -81,6 +80,7 @@ struct ms_speech_connection_st {
 
 	json_tokener *json_tokenizer;
 	ms_speech_parsed_message_t *current_parsed_message;
+	char current_request_id[48];
 	
 	ms_speech_streaming_info_t *streaming_info;
 	
